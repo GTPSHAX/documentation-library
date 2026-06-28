@@ -33,7 +33,8 @@
     "./cpp/26.md",
     "./cmake/Help/index.rst",
     "./cloudflare/src/content/docs/content.config.ts",
-    "./supabase/apps/docs/README.md"
+    "./supabase/apps/docs/README.md",
+    "./drizzle-orm/src/content/docs/overview.mdx"
   ],
 
   // References are intentionally empty. The agent resolves references
