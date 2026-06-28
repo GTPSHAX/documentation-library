@@ -1,0 +1,63 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  // Project metadata
+  "username": "center-docs",
+  "share": "manual",
+  "autoupdate": "notify",
+
+  // Default agent for this repository
+  "default_agent": "doc-library",
+
+  // Doc list is derived at runtime from ./sources.txt — NOT hardcoded here.
+  // The agent (see .opencode/agent/doc-library.md) and the
+  // .opencode/skill/doc-library/SKILL.md both read sources.txt first to
+  // discover which libraries are in scope.
+  //
+  // We only preload ENTRY POINTS (README / AGENTS / CHANGELOG) per source.
+  // Broad globs like `./*/**/*.md` would inject the entire doc tree into
+  // system context and blow the compact limit. The doc-library skill
+  // performs on-demand lookup against specific .md files.
+  "instructions": [
+    "./README.md",
+    "./sources.txt",
+    "./opencode/AGENTS.md",
+    "./daisyui/README.md",
+    "./daisyui/CHANGELOG.md",
+    "./express/README.md",
+    "./reactjs/README.md",
+    "./nextjs/README.md",
+    "./astro/README.md",
+    "./tailwindcss/README.md",
+    "./nodejs/README.md",
+    "./cpp/26.md",
+    "./cmake/Help/index.rst",
+    "./cloudflare/src/content/docs/content.config.ts",
+    "./supabase/apps/docs/README.md"
+  ],
+
+  // References are intentionally empty. The agent resolves references
+  // dynamically from ./sources.txt. Populating this map would duplicate
+  // sources.txt and drift out of sync.
+  "references": {},
+
+  // Skills directory (relative to this config; opencode also auto-discovers
+  // .opencode/skill/*/SKILL.md by glob).
+  // "skills": ["./skill"],
+
+  // Watcher: skip non-documentation trees so saves there don't trigger
+  // unnecessary re-scans of the system context.
+  "watcher": {
+    "ignore": [
+      "scripts/",
+      ".opencode/",
+      "opencode/"
+    ]
+  },
+
+  // Tool output bounds (defaults preserved; raised for long doc files)
+  "tool_output": {
+    "max_lines": 2000,
+    "max_bytes": 102400
+  }
+}

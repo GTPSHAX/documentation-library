@@ -1,0 +1,41 @@
+---
+title: std::chrono::last_spec
+type: Utilities
+source: https://en.cppreference.com/w/cpp/chrono/last_spec
+---
+
+
+```cpp
+**Header:** `<`chrono`>`
+dcl|since=c++20|1=
+struct last_spec
+{
+explicit last_spec() = default;
+};
+dcl|since=c++20|
+inline constexpr last_spec last{};
+```
+
+`last_spec` is an empty tag type that is used in conjunction with other calendar types to indicate the last thing in a sequence. Depending on context, it may indicate the last day of a month (as in `2018y/February/last`, for last day of February 2018, i.e., 2018-02-28) or the last day of the week in a month (as in `2018/February/Sunday[last]`, for last Sunday of February 2018, i.e., 2018-02-25).
+
+## Example
+
+
+### Example
+
+```cpp
+#include <chrono>
+
+int main()
+{
+    using namespace std::chrono;
+
+    constexpr auto mdl {June/last};
+    static_assert(mdl == month_day_last(month(6)));
+
+    constexpr auto ymwdl {year(2023)/December/Tuesday[last]};
+    static_assert(ymwdl ==
+        year_month_weekday_last(year(2023), month(12), weekday_last(Tuesday)));
+}
+```
+

@@ -1,0 +1,203 @@
+---
+title: std::ranges::count
+type: Algorithm
+source: https://en.cppreference.com/w/cpp/algorithm/ranges/count
+---
+
+
+```cpp
+**Header:** `<`algorithm`>`
+dcl rev multi|num=1|anchor=Version_1|since1=c++20|until1=c++26
+|dcl1=
+template< std::input_iterator I, std::sentinel_for<I> S,
+class T, class Proj = std::identity >
+requires std::indirect_binary_predicate
+<ranges::equal_to, std::projected<I, Proj>, const T*>
+constexpr std::iter_difference_t<I>
+count( I first, S last, const T& value, Proj proj = {} );
+|dcl2=
+template< std::input_iterator I, std::sentinel_for<I> S,
+class Proj = std::identity,
+class T = std::projected_value_t<I, Proj> >
+requires std::indirect_binary_predicate
+<ranges::equal_to, std::projected<I, Proj>, const T*>
+constexpr std::iter_difference_t<I>
+count( I first, S last, const T& value, Proj proj = {} );
+dcl rev multi|num=2|since1=c++20|until1=c++26
+|dcl1=
+template< ranges::input_range R, class T, class Proj = std::identity >
+requires std::indirect_binary_predicate
+<ranges::equal_to,
+std::projected<ranges::iterator_t<R>, Proj>, const T*>
+constexpr ranges::range_difference_t<R>
+count( R&& r, const T& value, Proj proj = {} );
+|dcl2=
+template< ranges::input_range R, class Proj = std::identity,
+class T = std::projected_value_t<ranges::iterator_t<R>, Proj> >
+requires std::indirect_binary_predicate
+<ranges::equal_to,
+std::projected<ranges::iterator_t<R>, Proj>, const T*>
+constexpr ranges::range_difference_t<R>
+count( R&& r, const T& value, Proj proj = {} );
+dcla|num=3|since=c++20|1=
+template< std::input_iterator I, std::sentinel_for<I> S,
+class Proj = std::identity,
+std::indirect_unary_predicate<std::projected<I, Proj>> Pred >
+constexpr std::iter_difference_t<I>
+count_if( I first, S last, Pred pred, Proj proj = {} );
+dcl|since=c++20|num=4|1=
+template< ranges::input_range R, class Proj = std::identity,
+std::indirect_unary_predicate<
+std::projected<ranges::iterator_t<R>, Proj>> Pred >
+constexpr ranges::range_difference_t<R>
+count_if( R&& r, Pred pred, Proj proj = {} );
+```
+
+Returns the number of elements in the range [first, last) satisfying specific criteria.
+1. Counts the elements that are equal to `value`.
+3. Counts elements for which predicate `p` returns `true`.
+@2,4@ Same as , but uses `r` as the source range, as if using `ranges::begin(r)` as `first` and `ranges::end(r)` as `last`.
+
+## Parameters
+
+
+### Parameters
+
+- `[3=to examine, sentinel=yes}})` - 
+- `r` - the range of the elements to examine
+- `value` - the value to search for
+- `pred` - predicate to apply to the projected elements
+- `proj` - projection to apply to the elements
+
+## Return value
+
+Number of elements satisfying the condition.
+
+## Complexity
+
+Exactly `last - first` comparisons and projection.
+
+## Notes
+
+For the number of elements in the range without any additional criteria, see `std::ranges::distance`.
+
+## Possible implementation
+
+eq impl
+|title1=count (1)|ver1=1|1=
+struct count_fn
+{
+template<std::input_iterator I, std::sentinel_for<I> S,
+class Proj = std::identity, class T = std::projected_value_t<I, Proj>>
+requires std::indirect_binary_predicate<ranges::equal_to,
+std::projected<I, Proj>, const T*>
+constexpr std::iter_difference_t<I>
+operator()(I first, S last, const T& value, Proj proj = {}) const
+{
+std::iter_difference_t<I> counter = 0;
+for (; first != last; ++first)
+if (std::invoke(proj, *first) == value)
+++counter;
+return counter;
+}
+template<ranges::input_range R, class Proj = std::identity
+class T = std::projected_value_t<ranges::iterator_t<R>, Proj>>
+requires std::indirect_binary_predicate<ranges::equal_to,
+std::projected<ranges::iterator_t<R>, Proj>,
+const T*>
+constexpr ranges::range_difference_t<R>
+operator()(R&& r, const T& value, Proj proj = {}) const
+{
+return (*this)(ranges::begin(r), ranges::end(r), value, std::ref(proj));
+}
+};
+inline constexpr count_fn count;
+|title2=count_if (3)|ver2=3|2=
+struct count_if_fn
+{
+template<std::input_iterator I, std::sentinel_for<I> S,
+class Proj = std::identity,
+std::indirect_unary_predicate<std::projected<I, Proj>> Pred>
+constexpr std::iter_difference_t<I>
+operator()(I first, S last, Pred pred, Proj proj = {}) const
+{
+std::iter_difference_t<I> counter = 0;
+for (; first != last; ++first)
+if (std::invoke(pred, std::invoke(proj, *first)))
+++counter;
+return counter;
+}
+template<ranges::input_range R, class Proj = std::identity,
+std::indirect_unary_predicate<
+std::projected<ranges::iterator_t<R>, Proj>> Pred>
+constexpr ranges::range_difference_t<R>
+operator()(R&& r, Pred pred, Proj proj = {}) const
+{
+return (*this)(ranges::begin(r), ranges::end(r),
+std::ref(pred), std::ref(proj));
+}
+};
+inline constexpr count_if_fn count_if;
+
+## Example
+
+
+### Example
+
+```cpp
+#include <algorithm>
+#include <cassert>
+#include <complex>
+#include <iostream>
+#include <vector>
+
+int main()
+{
+    std::vector<int> v{1, 2, 3, 4, 4, 3, 7, 8, 9, 10};
+
+    namespace ranges = std::ranges;
+
+    // determine how many integers in a std::vector match a target value.
+    int target1 = 3;
+    int target2 = 5;
+    int num_items1 = ranges::count(v.begin(), v.end(), target1);
+    int num_items2 = ranges::count(v, target2);
+    std::cout << "number: " << target1 << " count: " << num_items1 << '\n';
+    std::cout << "number: " << target2 << " count: " << num_items2 << '\n';
+
+    // use a lambda expression to count elements divisible by 3.
+    int num_items3 = ranges::count_if(v.begin(), v.end(), [](int i){ return i % 3 == 0; });
+    std::cout << "number divisible by three: " << num_items3 << '\n';
+
+    // use a lambda expression to count elements divisible by 11.
+    int num_items11 = ranges::count_if(v, [](int i){ return i % 11 == 0; });
+    std::cout << "number divisible by eleven: " << num_items11 << '\n';
+
+    std::vector<std::complex<double>> nums{<!---->{4, 2}, {1, 3}, {4, 2}<!---->};
+    #ifdef __cpp_lib_algorithm_default_value_type
+        auto c = ranges::count(nums, {4, 2});
+    #else
+        auto c = ranges::count(nums, std::complex<double>{4, 2});
+    #endif
+    assert(c == 2);
+}
+```
+
+
+**Output:**
+```
+number: 3 count: 2
+number: 5 count: 0
+number divisible by three: 3
+number divisible by eleven: 0
+```
+
+
+## See also
+
+
+| cpp/iterator/ranges/dsc distance | (see dedicated page) |
+| cpp/ranges/dsc view_counted | (see dedicated page) |
+| cpp/ranges/dsc filter_view | (see dedicated page) |
+| cpp/algorithm/dsc count | (see dedicated page) |
+

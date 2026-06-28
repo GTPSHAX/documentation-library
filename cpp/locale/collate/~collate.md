@@ -1,0 +1,14 @@
+---
+title: std::collate::~collate
+type: Localizations
+source: https://en.cppreference.com/w/cpp/locale/collate/~collate
+---
+
+de:cpp/locale/collate/~collate
+es:cpp/locale/collate/~collate
+fr:cpp/locale/collate/~collate
+it:cpp/locale/collate/~collate
+ja:cpp/locale/collate/~collate
+pt:cpp/locale/collate/~collate
+ru:cpp/locale/collate/~collate
+zh:cpp/locale/collate/~collate

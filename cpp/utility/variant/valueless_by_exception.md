@@ -1,0 +1,105 @@
+---
+title: std::variant::valueless_by_exception
+type: Utilities
+source: https://en.cppreference.com/w/cpp/utility/variant/valueless_by_exception
+---
+
+ddcl|since=c++17|
+constexpr bool valueless_by_exception() const noexcept;
+Returns `false` if and only if the variant holds a value.
+
+## Notes
+
+A variant may become valueless when initializing the contained value in the following situations:
+* (guaranteed) an exception is thrown during `operator
+* (optional) an exception is thrown during `operator
+* (optional) an exception is thrown during a type-changing `operator
+* (optional) an exception is thrown during a type-changing `emplace`
+Since variant is never permitted to allocate dynamic memory, the previous value cannot be retained and, therefore, restored in these situations. The "optional" cases can avoid throwing an exception if the type provides non-throwing moves and the implementation first constructs the new value on the stack and then moves it into the variant.
+This applies even to variants of non-class types:
+
+```cpp
+struct S
+{
+    operator int() { throw 42; }
+};
+std::variant<float, int> v{12.f}; // OK
+v.emplace<1>(S()); // v may be valueless
+```
+
+A variant that is ''valueless by exception'' &mdash; that is, has no value due to a previous exception from one of the situations listed above &mdash; is treated as being in an invalid state:
+* `index` returns `variant_npos`
+* `get` throws `bad_variant_access`
+* `visit` and  throw `bad_variant_access`
+
+## Example
+
+
+### Example
+
+```cpp
+#include <cassert>
+#include <iostream>
+#include <stdexcept>
+#include <string>
+#include <variant>
+
+struct Demo
+{
+    Demo(int) {}
+    Demo(const Demo&) { throw std::domain_error("copy ctor"); }
+    Demo& operator= (const Demo&) = default;
+};
+
+int main()
+{
+    std::variant<std::string, Demo> var{"str"};
+    assert(var.index() == 0);
+    assert(std::get<0>(var) == "str");
+    assert(var.valueless_by_exception() == false);
+
+    try
+    {
+        var = Demo{555};
+    }
+    catch (const std::domain_error& ex)
+    {
+        std::cout << "1) Exception: " << ex.what() << '\n';
+    }
+    assert(var.index() == std::variant_npos);
+    assert(var.valueless_by_exception() == true);
+
+    // Now the var is "valueless" which is an invalid state caused
+    // by an exception raised in the process of type-changing assignment.
+
+    try
+    {
+        std::get<1>(var);
+    }
+    catch (const std::bad_variant_access& ex)
+    {
+        std::cout << "2) Exception: " << ex.what() << '\n';
+    }
+
+    var = "str2";
+    assert(var.index() == 0);
+    assert(std::get<0>(var) == "str2");
+    assert(var.valueless_by_exception() == false);
+}
+```
+
+
+**Output:**
+```
+1) Exception: copy ctor
+2) Exception: std::get: variant is valueless
+```
+
+
+## See also
+
+
+| cpp/utility/variant/dsc get | (see dedicated page) |
+| cpp/utility/variant/dsc index | (see dedicated page) |
+| cpp/utility/variant/dsc bad_variant_access | (see dedicated page) |
+

@@ -1,0 +1,14 @@
+---
+title: std::basic_stringstream::swap
+type: Input/output
+source: https://en.cppreference.com/w/cpp/io/basic_stringstream/swap
+---
+
+de:cpp/io/basic stringstream/swap
+es:cpp/io/basic stringstream/swap
+fr:cpp/io/basic stringstream/swap
+it:cpp/io/basic stringstream/swap
+ja:cpp/io/basic stringstream/swap
+pt:cpp/io/basic stringstream/swap
+ru:cpp/io/basic stringstream/swap
+zh:cpp/io/basic stringstream/swap

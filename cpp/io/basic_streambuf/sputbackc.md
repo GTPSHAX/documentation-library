@@ -1,0 +1,29 @@
+---
+title: std::basic_streambuf::sputbackc
+type: Input/output
+source: https://en.cppreference.com/w/cpp/io/basic_streambuf/sputbackc
+---
+
+ddcl | 1=
+int_type sputbackc( char_type c );
+Puts back a character back to the get area.
+If a putback position is available in the get area (`gptr() > eback()`), and the character `c` is equal to the character one position to the left of `gptr()` (as determined by `Traits::eq(c, gptr()[-1])`, then simply decrements the next pointer (`gptr()`).
+Otherwise, calls `pbackfail(Traits::to_int_type(c))` to either back up the get area or to modify both the get area and possibly the associated character sequence.
+The I/O stream function  is implemented in terms of this function.
+
+## Parameters
+
+
+### Parameters
+
+
+## Return value
+
+If putback position was available, returns the character that the next pointer is now pointing at, converted to `int_type` with `Traits::to_int_type(*gptr())`. The next single-character input from this streambuf will return this character.
+If putback position was not available, returns what `pbackfail()` returns, which is  `Traits::eof()` on failure.
+
+## Example
+
+
+## See also
+

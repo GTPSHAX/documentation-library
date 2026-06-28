@@ -1,0 +1,94 @@
+---
+title: std::is_same
+type: Metaprogramming
+source: https://en.cppreference.com/w/cpp/types/is_same
+---
+
+ddcl|header=type_traits|since=c++11|
+template< class T, class U >
+struct is_same;
+If `T` and `U` name the same type (taking into account const/volatile qualifications), provides the member constant `value` equal to `true`. Otherwise `value` is `false`.
+Commutativity is satisfied, i.e. for any two types `T` and `U`, `1=is_same<T, U>::value == true` if and only if `1=is_same<U, T>::value == true`.
+
+## Helper variable template
+
+ddcl|since=c++17|1=
+template< class T, class U >
+constexpr bool is_same_v = is_same<T, U>::value;
+
+## Possible implementation
+
+eq fun
+|1=
+template<class T, class U>
+struct is_same : std::false_type {};
+template<class T>
+struct is_same<T, T> : std::true_type {};
+
+## Example
+
+
+### Example
+
+```cpp
+#include <cstdint>
+#include <iostream>
+#include <type_traits>
+
+#define SHOW(...) std::cout << #__VA_ARGS__ << " : " << __VA_ARGS__ << '\n'
+
+int main()
+{
+    std::cout << std::boolalpha;
+
+    // some implementation-defined facts
+
+    // usually true if 'int' is 32 bit
+    SHOW( std::is_same<int, std::int32_t>::value ); // maybe true
+    // possibly true if ILP64 data model is used
+    SHOW( std::is_same<int, std::int64_t>::value ); // maybe false
+
+    // same tests as above, except using C++17's std::is_same_v<T, U> format
+    SHOW( std::is_same_v<int, std::int32_t> ); // maybe true
+    SHOW( std::is_same_v<int, std::int64_t> ); // maybe false
+
+    // compare the types of a couple variables
+    long double num1 = 1.0;
+    long double num2 = 2.0;
+    static_assert( std::is_same_v<decltype(num1), decltype(num2)> == true );
+
+    // 'float' is never an integral type
+    static_assert( std::is_same<float, std::int32_t>::value == false );
+
+    // 'int' is implicitly 'signed'
+    static_assert( std::is_same_v<int, int> == true );
+    static_assert( std::is_same_v<int, unsigned int> == false );
+    static_assert( std::is_same_v<int, signed int> == true );
+
+    // unlike other types, 'char' is neither 'unsigned' nor 'signed'
+    static_assert( std::is_same_v<char, char> == true );
+    static_assert( std::is_same_v<char, unsigned char> == false );
+    static_assert( std::is_same_v<char, signed char> == false );
+
+    // const-qualified type T is not same as non-const T
+    static_assert( !std::is_same<const int, int>() );
+}
+#undef SHOW
+```
+
+
+**Output:**
+```
+std::is_same<int, std::int32_t>::value : true
+std::is_same<int, std::int64_t>::value : false
+std::is_same_v<int, std::int32_t> : true
+std::is_same_v<int, std::int64_t> : false
+```
+
+
+## See also
+
+
+| cpp/concepts/dsc same_as | (see dedicated page) |
+| cpp/language/dsc decltype | (see dedicated page) |
+

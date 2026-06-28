@@ -1,0 +1,14 @@
+---
+title: std::basic_ifstream::rdbuf
+type: Input/output
+source: https://en.cppreference.com/w/cpp/io/basic_ifstream/rdbuf
+---
+
+de:cpp/io/basic ifstream/rdbuf
+es:cpp/io/basic ifstream/rdbuf
+fr:cpp/io/basic ifstream/rdbuf
+it:cpp/io/basic ifstream/rdbuf
+ja:cpp/io/basic ifstream/rdbuf
+pt:cpp/io/basic ifstream/rdbuf
+ru:cpp/io/basic ifstream/rdbuf
+zh:cpp/io/basic ifstream/rdbuf

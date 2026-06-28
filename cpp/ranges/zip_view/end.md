@@ -1,0 +1,51 @@
+---
+title: std::ranges::zip_view::end
+type: Ranges
+source: https://en.cppreference.com/w/cpp/ranges/zip_view/end
+---
+
+
+```cpp
+dcl|num=1|since=c++23|1=
+constexpr auto end()
+requires (!(/*simple-view*/<Views> && ...);
+dcl|num=2|since=c++23|1=
+constexpr auto end() const
+requires (ranges::range<const Views> && ...);
+|1=
+template< class... Rs >
+concept /*zip-is-common*/ =
+(sizeof...(Rs) == 1 && (ranges::common_range<Rs> && ...))
+(!(ranges::bidirectional_range<Rs> && ...) && (ranges::common_range<Rs> && ...))
+((ranges::random_access_range<Rs> && ...) && (ranges::sized_range<Rs> && ...));
+```
+
+Returns an `iterator` or a `sentinel` that compares equal to the end iterator of the `zip_view`.
+Let  denote the underlying tuple of views.
+1. Equivalent to:
+* `return /*sentinel*/<false>(/*tuple-transform*/(ranges::end, views_));`,
+: if `/*zip-is-common*/<Views...>` evaluates to `false`. Otherwise,
+* `return begin() + std::iter_difference_t</*iterator*/<false>>(size());`,
+: if `(ranges::random_access_range<Views> && ...)` evaluates to `true`. Otherwise,
+* `return /*iterator*/<false>(/*tuple-transform*/(ranges::end, views_));`.
+2. Equivalent to:
+* `return /*sentinel*/<true>(/*tuple-transform*/(ranges::end, views_));`,
+: if `/*zip-is-common*/<const Views...>` evaluates to `false`. Otherwise,
+* `return begin() + std::iter_difference_t</*iterator*/<true>>(size());`,
+: if `ranges::random_access_range<const Views> && ...` evaluates to `true`. Otherwise,
+* `return /*iterator*/<true>(/*tuple-transform*/(ranges::end, views_));`.
+
+## Parameters
+
+(none)
+
+## Return value
+
+An iterator or sentinel representing the end of the `zip_view`, as described above.
+
+## Notes
+
+`ranges::range<const ranges::zip_view<Views...>>` is modeled if and only if for every type `Vi` in `Views...`, `const Vi` models .
+
+## Example
+

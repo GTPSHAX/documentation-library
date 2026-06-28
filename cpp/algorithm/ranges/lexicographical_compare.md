@@ -1,0 +1,155 @@
+---
+title: std::ranges::lexicographical_compare
+type: Algorithm
+source: https://en.cppreference.com/w/cpp/algorithm/ranges/lexicographical_compare
+---
+
+
+```cpp
+**Header:** `<`algorithm`>`
+dcl|num=1|since=c++20|1=
+template< std::input_iterator I1, std::sentinel_for<I1> S1,
+std::input_iterator I2, std::sentinel_for<I2> S2,
+class Proj1 = std::identity, class Proj2 = std::identity,
+std::indirect_strict_weak_order<
+std::projected<I1, Proj1>,
+std::projected<I2, Proj2>> Comp = ranges::less >
+constexpr bool
+lexicographical_compare( I1 first1, S1 last1, I2 first2, S2 last2,
+Comp comp = {}, Proj1 proj1 = {}, Proj2 proj2 = {} );
+dcl|num=2|since=c++20|1=
+template< ranges::input_range R1, ranges::input_range R2,
+class Proj1 = std::identity, class Proj2 = std::identity,
+std::indirect_strict_weak_order<
+std::projected<ranges::iterator_t<R1>, Proj1>,
+std::projected<ranges::iterator_t<R2>, Proj2>> Comp = ranges::less >
+constexpr bool
+lexicographical_compare( R1&& r1, R2&& r2, Comp comp = {},
+Proj1 proj1 = {}, Proj2 proj2 = {} );
+```
+
+Checks if the first range [first1, last1) is lexicographically ''less'' than the second range [first2, last2).
+1. Elements are compared using the given binary comparison function `comp`.
+2. Same as , but uses `r` as the source range, as if using `ranges::begin(r)` as `first` and `ranges::end(r)` as `last`.
+Lexicographical comparison is an operation with the following properties:
+* Two ranges are compared element by element.
+* The first mismatching element defines which range is lexicographically ''less'' or ''greater'' than the other.
+* If one range is a prefix of another, the shorter range is lexicographically ''less'' than the other.
+* If two ranges have equivalent elements and are of the same length, then the ranges are lexicographically ''equal''.
+* An empty range is lexicographically ''less'' than any non-empty range.
+* Two empty ranges are lexicographically ''equal''.
+
+## Parameters
+
+
+### Parameters
+
+- `[first1, last1)` - 
+- `r1` - the first range of elements to examine
+- `[first2, last2)` - 
+- `r2` - the second range of elements to examine
+- `comp` - comparison function to apply to the projected elements
+- `proj1` - projection to apply to the first range of elements
+- `proj2` - projection to apply to the second range of elements
+
+## Return value
+
+`true` if the first range is lexicographically ''less'' than the second.
+
+## Complexity
+
+At most $2&middot;min(N1, N2)$ applications of the comparison and corresponding projections, where `1=N1 = ranges::distance(first1, last1)` and `1=N2 = ranges::distance(first2, last2)`.
+
+## Possible implementation
+
+eq fun|1=
+struct lexicographical_compare_fn
+{
+template<std::input_iterator I1, std::sentinel_for<I1> S1,
+std::input_iterator I2, std::sentinel_for<I2> S2,
+class Proj1 = std::identity, class Proj2 = std::identity,
+std::indirect_strict_weak_order<
+std::projected<I1, Proj1>,
+std::projected<I2, Proj2>> Comp = ranges::less>
+constexpr bool operator()(I1 first1, S1 last1, I2 first2, S2 last2,
+Comp comp = {}, Proj1 proj1 = {}, Proj2 proj2 = {}) const
+{
+for (; (first1 != last1) && (first2 != last2); ++first1, (void) ++first2)
+{
+if (std::invoke(comp, std::invoke(proj1, *first1), std::invoke(proj2, *first2)))
+return true;
+if (std::invoke(comp, std::invoke(proj2, *first2), std::invoke(proj1, *first1)))
+return false;
+}
+return (first1 == last1) && (first2 != last2);
+}
+template<ranges::input_range R1, ranges::input_range R2,
+class Proj1 = std::identity, class Proj2 = std::identity,
+std::indirect_strict_weak_order<
+std::projected<ranges::iterator_t<R1>, Proj1>,
+std::projected<ranges::iterator_t<R2>, Proj2>> Comp = ranges::less>
+constexpr bool operator()(R1&& r1, R2&& r2, Comp comp = {},
+Proj1 proj1 = {}, Proj2 proj2 = {}) const
+{
+return (*this)(ranges::begin(r1), ranges::end(r1),
+ranges::begin(r2), ranges::end(r2),
+std::ref(comp), std::ref(proj1), std::ref(proj2));
+}
+};
+inline constexpr lexicographical_compare_fn lexicographical_compare;
+
+## Example
+
+
+### Example
+
+```cpp
+#include <algorithm>
+#include <iostream>
+#include <iterator>
+#include <random>
+#include <vector>
+
+int main()
+{
+    std::vector<char> v1 {'a', 'b', 'c', 'd'};
+    std::vector<char> v2 {'a', 'b', 'c', 'd'};
+
+    namespace ranges = std::ranges;
+    auto os = std::ostream_iterator<char>(std::cout, " ");
+
+    std::mt19937 g {std::random_device {}()};
+    while (not ranges::lexicographical_compare(v1, v2))
+    {
+        ranges::copy(v1, os);
+        std::cout << ">= ";
+        ranges::copy(v2, os);
+        std::cout << '\n';
+
+        ranges::shuffle(v1, g);
+        ranges::shuffle(v2, g);
+    }
+
+    ranges::copy(v1, os);
+    std::cout << "<  ";
+    ranges::copy(v2, os);
+    std::cout << '\n';
+}
+```
+
+
+**Output:**
+```
+a b c d >= a b c d
+d a b c >= c b d a
+b d a c >= a d c b
+a c d b <  c d a b
+```
+
+
+## See also
+
+
+| cpp/algorithm/ranges/dsc equal | (see dedicated page) |
+| cpp/algorithm/dsc lexicographical_compare | (see dedicated page) |
+

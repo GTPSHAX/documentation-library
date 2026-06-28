@@ -1,0 +1,307 @@
+---
+title: API des services d'images
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+
+`astro:assets` a été conçu pour permettre à tout service d'optimisation d'images de créer facilement un service reposant sur Astro.
+
+## Qu'est-ce qu'un service d'images ?
+
+Astro propose deux types de services d'images : Local et Externe.
+
+- **Les services locaux** gèrent les transformations d'image directement lors de la compilation pour les sites statiques, ou lors de l'exécution, à la fois en mode développement et pour le rendu à la demande. Il s'agit souvent d'enveloppes autour de bibliothèques telles que Sharp, ImageMagick ou Squoosh. En mode développement et pour les routes en production rendues à la demande, les services locaux utilisent un point de terminaison d'API pour effectuer la transformation.
+- Les **services externes** pointent vers des URL et peuvent ajouter la prise en charge de services tels que Cloudinary, ImageKit, Vercel ou tout autre serveur compatible avec [RIAPI](https://github.com/riapi/riapi).
+
+## Construire à l'aide de l'API des services d'images
+
+Les définitions de service prennent la forme d'un objet par défaut exporté avec diverses méthodes requises (« hooks »).
+
+Les services externes fournissent une méthode `getURL()` qui pointe vers la `src` de la balise `<img>` après compilation.
+
+Les services locaux fournissent une méthode `transform()` pour effectuer des transformations sur votre image, et les méthodes `getURL()` et `parseURL()` pour utiliser un point de terminaison pour le mode dev et lors du rendu à la demande.
+
+Les deux types de services peuvent fournir `getHTMLAttributes()` pour déterminer les autres attributs de la sortie `<img>` et `validateOptions()` pour valider et augmenter les options transmises.
+
+### Services externes
+
+Un service externe pointe vers une URL distante à utiliser comme attribut `src` de la balise `<img>` finale. Cette URL distante est responsable du téléchargement, de la transformation et du renvoi de l'image.
+
+```ts
+import type { ExternalImageService, ImageTransform, AstroConfig } from "astro";
+
+const service: ExternalImageService = {
+  validateOptions(options: ImageTransform, imageConfig: AstroConfig['image']) {
+    const serviceConfig = imageConfig.service.config;
+
+    // Appliquer la largeur maximale définie par l'utilisateur.
+    if (options.width && options.width > serviceConfig.maxWidth) {
+      console.warn(`La largeur de l'image ${options.width} dépasse la largeur maximale ${serviceConfig.maxWidth}. Repli sur la largeur maximale.`);
+      options.width = serviceConfig.maxWidth;
+    }
+
+    return options;
+  },
+  getURL(options, imageConfig) {
+    return `https://monsupercdn.com/${options.src}?q=${options.quality}&w=${options.width}&h=${options.height}`;
+  },
+  getHTMLAttributes(options, imageConfig) {
+    const { src, format, quality, ...attributes } = options;
+		return {
+			...attributes,
+			loading: options.loading ?? 'lazy',
+			decoding: options.decoding ?? 'async',
+		};
+	}
+};
+
+
+export default service;
+```
+
+### Services locaux
+
+Pour créer votre propre service local, vous pouvez pointer vers le [point de terminaison intégré](https://github.com/withastro/astro/blob/main/packages/astro/src/assets/endpoint/generic.ts) (`/_image`), ou vous pouvez également créer votre propre point de terminaison qui peut appeler les méthodes du service.
+
+```ts
+import type { ImageTransform, LocalImageService, AstroConfig } from "astro";
+
+const service: LocalImageService<AstroConfig["image"]> = {
+  getURL(options: ImageTransform, imageConfig) {
+    const searchParams = new URLSearchParams();
+		searchParams.append('href', typeof options.src === "string" ? options.src : options.src.src);
+		options.width && searchParams.append('w', options.width.toString());
+		options.height && searchParams.append('h', options.height.toString());
+		options.quality && searchParams.append('q', options.quality.toString());
+		options.format && searchParams.append('f', options.format);
+    return `/mon_point_de_terminaison_personnalise_qui_transforme_les_images?${searchParams}`;
+    // Ou utilisez le point de terminaison intégré, qui appellera vos fonctions parseURL et transform :
+    // return `/_image?${searchParams}`;
+  },
+  parseURL(url: URL, imageConfig) {
+    const params = url.searchParams;
+    return {
+      src: params.get('href')!,
+      width: params.has('w') ? parseInt(params.get('w')!) : undefined,
+      height: params.has('h') ? parseInt(params.get('h')!) : undefined,
+			format: params.get('f'),
+      quality: params.get('q'),
+    };
+  },
+  async transform(inputBuffer: Uint8Array, options: { src: string, [key: string]: any }, imageConfig) {
+    const { buffer } = await mySuperLibraryThatEncodesImages(options);
+    return {
+      data: buffer,
+      format: options.format,
+    };
+  },
+  getHTMLAttributes(options, imageConfig) {
+		let targetWidth = options.width;
+		let targetHeight = options.height;
+		if (typeof options.src === "object") {
+			const aspectRatio = options.src.width / options.src.height;
+
+			if (targetHeight && !targetWidth) {
+				targetWidth = Math.round(targetHeight * aspectRatio);
+			} else if (targetWidth && !targetHeight) {
+				targetHeight = Math.round(targetWidth / aspectRatio);
+			}
+		}
+
+		const { src, width, height, format, quality, ...attributes } = options;
+
+		return {
+			...attributes,
+			width: targetWidth,
+			height: targetHeight,
+			loading: attributes.loading ?? 'lazy',
+			decoding: attributes.decoding ?? 'async',
+		};
+	},
+  propertiesToHash: ['src', 'width', 'height', 'format', 'quality'], 
+};
+export default service;
+```
+
+Au moment de la compilation des sites statiques et des routes pré-rendues, `<Image />` et `getImage(options)` appellent la fonction `transform()`. Ces derniers transmettent des options soit par les attributs du composant, soit par un argument `options`, respectivement. Les images transformées seront générées dans un dossier `dist/_astro`. Leurs noms de fichier contiendront un hachage des propriétés transmises à `propertiesToHash`. Cette propriété est optionnelle et sera définie par défaut sur `['src', 'width', 'height', 'format', 'quality']`. Si votre service d'images personnalisé dispose d’autres options qui modifient les images générées, ajoutez-les au tableau.
+
+En mode développement et lors de l'utilisation d'un adaptateur pour effectuer le rendu à la demande, Astro ne sait pas à l'avance quelles images doivent être optimisées. Astro utilise un point de terminaison GET (par défaut, `/_image`) pour traiter les images au moment de l'exécution. `<Image />` et `getImage()` transmettent leurs options à `getURL()`, qui renvoie l'URL du point de terminaison. Ensuite, le point de terminaison appelle `parseURL()` et transmet les propriétés résultantes à `transform()`.
+
+#### getConfiguredImageService & imageConfig
+
+Si vous implémentez votre propre point de terminaison en tant que point de terminaison Astro, vous pouvez utiliser [`getConfiguredImageService`](/fr/reference/modules/astro-assets/#getconfiguredimageservice) et [`imageConfig`](/fr/reference/modules/astro-assets/#imageconfig) pour appeler les méthodes `parseURL` et `transform` de votre service et fournir la configuration de l'image.
+
+Pour accéder à la configuration du service d'image ([`image.service.config`](/fr/reference/configuration-reference/#imageservice)), vous pouvez utiliser `imageConfig.service.config`.
+
+```ts title="src/api/mon_point_de_terminaison_personnalise_qui_transforme_les_images.ts"
+import type { APIRoute } from "astro";
+import { getConfiguredImageService, imageConfig } from 'astro:assets';
+
+export const GET: APIRoute = async ({ request }) => {
+  const imageService = await getConfiguredImageService();
+
+  const imageTransform = imageService.parseURL(new URL(request.url), imageConfig);
+  // ... récupère l'image à partir de imageTransform.src et la stocke dans inputBuffer
+  const { data, format } = await imageService.transform(inputBuffer, imageTransform, imageConfig);
+  return new Response(data, {
+			status: 200,
+			headers: {
+				'Content-Type': mime.getType(format) || ''
+      }
+    }
+  );
+}
+```
+
+[Voir le point de terminaison intégré](https://github.com/withastro/astro/blob/main/packages/astro/src/assets/endpoint/generic.ts) pour un exemple complet.
+
+
+## Hooks
+
+### `getURL()`
+
+<p>
+
+**Type :** <code>(options: <a href="/fr/reference/modules/astro-assets/#imagetransform">ImageTransform</a>, imageConfig: <a href="/fr/reference/configuration-reference/#options-dimages">AstroConfig['image']</a>) => string | Promise\<string\></code><br />
+<Since v="2.1.0" />
+</p>
+
+**Requis pour les services locaux et externes**
+
+Pour les services locaux, ce hook renvoie l'URL du point de terminaison qui génère votre image (pour le rendu à la demande et en mode dev). Il n'est pas utilisé pendant la compilation. Le point de terminaison local vers lequel `getURL()` pointe peut appeler à la fois `parseURL()` et `transform()`.
+
+Pour les services externes, ce hook renvoie l'URL finale de l'image.
+
+Pour les deux types de services, les `options` sont les propriétés passées par l'utilisateur comme attributs du composant `<Image />` ou comme options de `getImage()`.
+
+### `parseURL()`
+
+<p>
+
+**Type :** <code>(url: URL, imageConfig: <a href="/fr/reference/configuration-reference/#options-dimages">AstroConfig['image']</a>) => \{ src: string, [key: string]: any \} | undefined | Promise\<\{ src: string, [key: string]: any \}\> | Promise\<undefined\></code><br />
+<Since v="2.1.0" />
+</p>
+
+**Requis pour les services locaux uniquement ; indisponible pour les services externes**
+
+Ce hook analyse les URLs générées par `getURL()` en un objet avec les différentes propriétés à utiliser par `transform` (en SSR et en mode dev). Il n'est pas utilisé pendant la compilation.
+
+### `transform()`
+
+<p>
+
+**Type :** <code>(inputBuffer: Uint8Array, options: \{ src: string, [key: string]: any \}, imageConfig: <a href="/fr/reference/configuration-reference/#options-dimages">AstroConfig['image']</a>) => Promise\<\{ data: Uint8Array; format: <a href="/fr/reference/modules/astro-assets/#imageoutputformat">ImageOutputFormat</a> \}\></code><br />
+<Since v="2.1.0" />
+</p>
+
+**Requis pour les services locaux uniquement ; indisponible pour les services externes**
+
+Ce hook transforme et renvoie l'image et est appelé pendant la compilation pour créer les fichiers de ressources finaux.
+
+Vous devez renvoyer un `format` pour garantir que le type MIME approprié est fourni aux utilisateurs pour le rendu à la demande et le mode de développement.
+
+### `getHTMLAttributes()`
+
+<p>
+
+**Type :** <code>(options: <a href="/fr/reference/modules/astro-assets/#imagetransform">ImageTransform</a>, imageConfig: <a href="/fr/reference/configuration-reference/#options-dimages">AstroConfig['image']</a> ) => Record\<string, any\> | Promise\<Record\<string, any\>\></code><br />
+<Since v="2.1.0" />
+</p>
+
+**Facultatif pour les services locaux et externes**
+
+Ce hook renvoie tous les attributs supplémentaires utilisés pour restituer l'image en HTML, en fonction des paramètres transmis par l'utilisateur (`options`).
+
+### `getSrcSet()`
+
+<p>
+
+**Type :** <code>(options: <a href="/fr/reference/modules/astro-assets/#imagetransform">ImageTransform</a>, imageConfig: <a href="/fr/reference/configuration-reference/#options-dimages">AstroConfig['image']</a> ) => UnresolvedSrcSetValue[] | Promise\<UnresolvedSrcSetValue[]\></code><br />
+<Since v="3.3.0" />
+</p>
+
+**Facultatif pour les services locaux et externes**
+
+Ce hook génère plusieurs variantes de l'image spécifiée, par exemple, pour générer un attribut `srcset` sur une `<img>` ou `source` sur `<picture>`.
+
+Ce hook retourne un tableau d'objets avec les propriétés suivantes :
+
+```ts
+export type UnresolvedSrcSetValue = {
+	transform: ImageTransform;
+	descriptor?: string;
+	attributes?: Record<string, any>;
+};
+```
+
+### `validateOptions()`
+
+<p>
+
+**Type :** <code>(options: <a href="/fr/reference/modules/astro-assets/#imagetransform">ImageTransform</a>, imageConfig: <a href="/fr/reference/configuration-reference/#options-dimages">AstroConfig['image']</a> ) => ImageTransform | Promise\<ImageTransform\></code>
+<Since v="2.1.4" />
+</p>
+
+**Facultatif pour les services locaux et externes**
+
+Ce hook vous permet de valider et d'augmenter les options passées par l'utilisateur. C'est utile pour définir des options par défaut, ou pour indiquer à l'utilisateur qu'un paramètre est nécessaire.
+
+[Voir comment `validateOptions()` est utilisé dans les services intégrés d'Astro](https://github.com/withastro/astro/blob/0ab6bad7dffd413c975ab00e545f8bc150f6a92f/packages/astro/src/assets/services/service.ts#L124).
+
+### `getRemoteSize()`
+
+<p>
+
+**Type :** <code>(url: string, imageConfig: <a href="/fr/reference/configuration-reference/#options-dimages">AstroConfig['image']</a> ) => Omit\<<a href="/fr/reference/modules/astro-assets/#imagemetadata-1">ImageMetadata</a>, 'src' | 'fsPath'\> | Promise\<Omit\<<a href="/fr/reference/modules/astro-assets/#imagemetadata-1">ImageMetadata</a>, 'src' | 'fsPath'\>\></code>
+<Since v="6.0.0" />
+</p>
+
+**Facultatif pour les services locaux et externes**
+
+Ce hook vous permet d'étendre le comportement de [`inferRemoteSize()`](/fr/reference/modules/astro-assets/#inferremotesize). Ceci est utile pour réduire le trafic réseau en mettant les images en cache, ou lorsque vous pouvez prédire les informations d'une image à partir de son URL.
+
+## Configuration de l'utilisateur
+
+Configurez le service d'image à utiliser dans `astro.config.mjs`. La configuration prend la forme suivante :
+
+```js title="astro.config.mjs"
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  image: {
+    service: {
+      entrypoint: "votre-point-d-entrée", // 'astro/assets/services/sharp' | string,
+      config: {
+        // ... configuration spécifique au service. En option.
+      }
+    }
+  },
+});
+```
+
+## Définir un type pour les props personnalisées du service d'images
+
+<p><Since v="5.16.6" /></p>
+
+Si votre service d'images prend en charge des propriétés supplémentaires dans le composant `<Image>` d'Astro, le composant `<Picture>` ou la fonction `getImage()`, vous pouvez ajouter des types pour celles-ci en étendant l'interface `Astro.CustomImageProps`.
+
+Par exemple, pour ajouter une propriété `blur` personnalisée compatible avec votre service d'images :
+
+```ts
+declare namespace Astro {
+  interface CustomImageProps {
+    /** Appliquez un flou gaussien avec ce rayon à l'image. */
+    blur?: number;
+  }
+}
+```
+
+Vous pouvez exposer ces types aux utilisateurs en faisant de votre service d'images une [intégration Astro](/fr/reference/integrations-reference/) et en utilisant l'assistant [`injectTypes()`](/fr/reference/integrations-reference/#option-injecttypes).
+
+Les utilisateurs pourront alors bénéficier de la saisie semi-automatique et de la sûreté du typage pour vos props personnalisées :
+
+```astro
+<Image blur="yes" src={myPhoto}  />
+//     ^^^^^^^^^^
+//     Type 'string' is not assignable to type 'number | undefined'.
+```

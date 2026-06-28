@@ -1,0 +1,78 @@
+---
+title: std::ctime
+type: Utilities
+source: https://en.cppreference.com/w/cpp/chrono/c/ctime
+---
+
+ddcl|header=ctime|
+char* ctime( const std::time_t* time );
+Converts given time since epoch to a calendar local time and then to a textual representation, as if by calling `std::asctime(std::localtime(time))`. The resulting string has the following format:
+
+```cpp
+Www Mmm dd hh:mm:ss yyyy
+
+```
+
+* `Www` - the day of the week (one of `Mon`, `Tue`, `Wed`, `Thu`, `Fri`, `Sat`, `Sun`).
+* `Mmm` - the month (one of `Jan`, `Feb`, `Mar`, `Apr`, `May`, `Jun`, `Jul`, `Aug`, `Sep`, `Oct`, `Nov`, `Dec`).
+* `dd` - the day of the month.
+* `hh` - hours.
+* `mm` - minutes.
+* `ss` - seconds.
+* `yyyy` - years.
+The function does not support localization.
+
+## Parameters
+
+
+### Parameters
+
+- `time` - pointer to a `std::time_t` object specifying the time to print
+
+## Return value
+
+Pointer to a static null-terminated character string holding the textual representation of date and time. The string may be shared between `std::asctime` and `std::ctime`, and may be overwritten on each invocation of any of those functions.
+
+## Notes
+
+This function returns a pointer to static data and is not thread-safe. In addition, it modifies the static `std::tm` object which may be shared with `std::gmtime` and `std::localtime`. POSIX marks this function obsolete and recommends `std::strftime` instead.
+The behavior may be undefined for the values of `std::time_t` that result in the string longer than 25 characters (e.g. year 10000).
+
+## Example
+
+
+### Example
+
+```cpp
+#include <cassert>
+#include <cstring>
+#include <ctime>
+#include <iostream>
+
+int main()
+{
+    std::time_t result = std::time(nullptr);
+    std::cout << std::ctime(&result);
+
+    char buffer[32];
+    std::strncpy(buffer, std::ctime(&result), 26);
+    assert('\n' == buffer[std::strlen(buffer) - 1]);
+    std::cout << buffer;
+}
+```
+
+
+**Output:**
+```
+Mon Oct 11 17:10:55 2021
+Mon Oct 11 17:10:55 2021
+```
+
+
+## See also
+
+
+| cpp/chrono/c/dsc asctime | (see dedicated page) |
+| cpp/chrono/c/dsc strftime | (see dedicated page) |
+| cpp/io/manip/dsc put_time | (see dedicated page) |
+

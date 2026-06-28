@@ -1,0 +1,7 @@
+---
+title: std::jthread::joinable
+type: Concurrency support
+source: https://en.cppreference.com/w/cpp/thread/jthread/joinable
+---
+
+

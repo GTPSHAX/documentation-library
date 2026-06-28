@@ -1,0 +1,122 @@
+---
+title: std::void_t
+type: Metaprogramming
+source: https://en.cppreference.com/w/cpp/types/void_t
+---
+
+ddcl|header=type_traits|since=c++17|1=
+template< class... >
+using void_t = void;
+Utility metafunction that maps a sequence of any types to the type `void`. This metafunction is a convenient way to leverage SFINAE prior to C++20's concepts, in particular for conditionally removing functions from the candidate set based on whether an expression is valid in the unevaluated context (such as operand to `cpp/language/decltype` expression), allowing to exist separate function overloads or specializations based on supported operations.
+
+## Notes
+
+This metafunction is used in template metaprogramming to detect ill-formed types in SFINAE context:
+
+```cpp
+// primary template handles types that have no nested ::type member:
+template<class, class = void>
+struct has_type_member : std::false_type {};
+
+// specialization recognizes types that do have a nested ::type member:
+template<class T>
+struct has_type_member<T, std::void_t<typename T::type>> : std::true_type {};
+```
+
+It can also be used to detect validity of an expression:
+
+```cpp
+// primary template handles types that do not support pre-increment:
+template<class, class = void>
+struct has_pre_increment_member : std::false_type {};
+
+// specialization recognizes types that do support pre-increment:
+template<class T>
+struct has_pre_increment_member<T,
+           std::void_t<decltype(++std::declval<T&>())>
+       > : std::true_type {};
+```
+
+Until the resolution of  (a C++11 defect), unused parameters in alias templates were not guaranteed to ensure SFINAE and could be ignored, so earlier compilers require a more complex definition of `void_t`, such as
+
+```cpp
+template<typename... Ts>
+struct make_void { typedef void type; };
+
+template<typename... Ts>
+using void_t = typename make_void<Ts...>::type;
+```
+
+
+## Example
+
+
+### Example
+
+```cpp
+#include <iomanip>
+#include <iostream>
+#include <map>
+#include <type_traits>
+#include <vector>
+
+// Variable template that checks if a type has begin() and end() member functions
+template<typename, typename = void>
+constexpr bool is_range = false;
+
+template<typename T>
+constexpr bool is_range<T,
+    std::void_t<decltype(std::declval<T>().begin()),
+                decltype(std::declval<T>().end())>> = true;
+
+// An iterator trait those value_type is the value_type of the iterated container,
+// supports even back_insert_iterator (where value_type is void)
+template<typename T, typename = void>
+struct iterator_trait : std::iterator_traits<T> {};
+
+template<typename T>
+struct iterator_trait<T, std::void_t<typename T::container_type>>
+    : std::iterator_traits<typename T::container_type::iterator> {};
+
+class A {};
+
+#define SHOW(...) std::cout << std::setw(34) << #__VA_ARGS__ \
+                            << " == " << __VA_ARGS__ << '\n'
+
+int main()
+{
+    std::cout << std::boolalpha << std::left;
+
+    SHOW(is_range<std::vector<double>>);
+    SHOW(is_range<std::map<int, double>>);
+    SHOW(is_range<double>);
+    SHOW(is_range<A>);
+
+    using container_t = std::vector<int>;
+    container_t v;
+
+    static_assert(std::is_same_v<
+        container_t::value_type,
+        iterator_trait<decltype(std::begin(v))>::value_type>);
+
+    static_assert(std::is_same_v<
+        container_t::value_type,
+        iterator_trait<decltype(std::back_inserter(v))>::value_type>);
+}
+```
+
+
+**Output:**
+```
+is_range<std::vector<double>>   == true
+is_range<std::map<int, double>> == true
+is_range<double>                == false
+is_range<A>                     == false
+```
+
+
+## See also
+
+
+| cpp/types/dsc enable_if | (see dedicated page) |
+

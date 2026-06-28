@@ -1,0 +1,56 @@
+---
+title: std::terminate
+type: Diagnostics
+source: https://en.cppreference.com/w/cpp/error/terminate
+---
+
+
+```cpp
+**Header:** `<`exception`>`
+dcl rev multi
+|dcl1=
+void terminate();
+|since2=c++11|dcl2=
+noreturn void terminate() noexcept;
+```
+
+`std::terminate()` is called by the C++ runtime when the program cannot continue for any of the following reasons:
+1. An exception is thrown and not caught (it is implementation-defined whether any stack unwinding is done in this case).
+2. A function directly invoked by the exception handling mechanism while handling an exception that has not yet been caught exits via an exception (e.g. a destructor of some local object, or a copy constructor constructing a catch-clause parameter).
+3. The constructor or the destructor of a static <sup>(since C++11)</sup> or thread-local object throws an exception.
+4. A function registered with `std::atexit` <sup>(since C++11)</sup> or `std::at_quick_exit` throws an exception.
+rrev|until=c++17|
+5. A dynamic exception specification is violated and the default handler for `std::unexpected` is executed.
+6. A non-default handler for `std::unexpected` throws an exception that violates the previously violated dynamic exception specification, if the specification does not include `std::bad_exception`.
+rrev|since=c++11|
+7. A noexcept specification is violated (it is implementation-defined whether any stack unwinding is done in this case).
+8. `std::nested_exception::rethrow_nested` is called for an object that isn't holding a captured exception.
+9. An exception is thrown from the initial function of `std::thread`.
+10. A joinable `std::thread` is destroyed or assigned to.
+11. `std::condition_variable::wait`, `std::condition_variable::wait_until`, or `std::condition_variable::wait_for` fails to reach its postcondition (e.g. if relocking the mutex throws).
+rrev|since=c++17|
+12. A function invoked by a parallel algorithm exits via an uncaught exception and the execution policy specifies termination.
+`std::terminate()` may also be called directly from the program.
+When `std::terminate` is called due to a thrown exception, an implicit try/catch handler is considered active. Thus, calling `std::current_exception` will return the thrown exception.
+In any case, `std::terminate` calls the currently installed `std::terminate_handler`. The default `std::terminate_handler` calls `std::abort`.
+rrev multi
+|rev1=
+If a destructor reset the terminate handler during stack unwinding and the unwinding later led to `terminate` being called, the handler that was installed at the end of the throw expression is the one that will be called. (note: it was ambiguous whether re-throwing applied the new handlers)
+|since2=c++11|rev2=
+If a destructor reset the terminate handler during stack unwinding, it is unspecified which handler is called if the unwinding later led to `terminate` being called.
+
+## Notes
+
+If the handler mechanism is not wanted, e.g. because it requires atomic operations which may bloat binary size, a direct call to `std::abort` is preferred when terminating the program abnormally.
+Some compiler intrinsics, e.g. [https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html `__builtin_trap`] (gcc, clang, and icc) or [https://docs.microsoft.com/en-us/cpp/intrinsics/debugbreak?view=msvc-160 `__debugbreak`] (msvc), can be used to terminate the program as fast as possible.
+
+## Defect reports
+
+
+## See also
+
+
+| cpp/error/dsc terminate_handler | (see dedicated page) |
+| cpp/utility/program/dsc abort | (see dedicated page) |
+| cpp/utility/dsc breakpoint | (see dedicated page) |
+

@@ -1,0 +1,138 @@
+---
+title: std::ranges::swap
+type: Utilities
+source: https://en.cppreference.com/w/cpp/utility/ranges/swap
+---
+
+
+```cpp
+**Header:** `<`concepts`>`
+|since=c++20|1=
+namespace ranges {
+inline namespace /* unspecified */ {
+inline constexpr /* unspecified */ swap = /* unspecified */;
+}
+}
+dcl|since=c++20|1=
+template< class T, class U >
+constexpr void ranges::swap( T&& t, U&& u ) noexcept(/* see below */);
+```
+
+Exchanges the values referenced by `t` and `u`.
+`ranges::swap(t, u)` is expression-equivalent to:
+# `(void)swap(t, u)`, if `t` or `u` has class or enumeration type, and that expression is valid, where the overload resolution is performed within namespace `std::ranges` with the additional candidate `1=template<class T> void swap(T&, T&) = delete; `.
+#* If the function selected by overload resolution does not exchange the values referenced by `t` and `u`, the program is ill-formed; no diagnostic required.
+# Otherwise, `(void)ranges::swap_ranges(t, u)`, if `t` and `u` are lvalue arrays of equal extent (but possibly different element types) and `ranges::swap(*t, *u)` is a valid expression, except that `noexcept((void)ranges::swap_ranges(t, u))` is equal to `noexcept(ranges::swap(*t, *u))`.
+# Otherwise, an expression which exchanges the referenced values of `t` and `u`, if they are both lvalues of the same type `V` that models `std::move_constructible<V>` and `std::assignable_from<V&, V>`.
+#* The result of applying the `noexcept` operator to that expression is equal to `std::is_nothrow_move_constructible_v<V> && std::is_nothrow_move_assignable_v<V>`.
+#* That expression is a constant expression if
+#** `V` is a *LiteralType*,
+#** both `1=t = std::move(u))` and `1=u = std::move(t)` are constant subexpressions, and
+#** the full-expressions of the initializers in the following declarations are constant subexpressions:
+#*** `V v1(std::move(t));`
+#*** `V v2(std::move(u));`
+# Otherwise, `ranges::swap(t, u)` is ill-formed, which can result in substitution failure when `ranges::swap(t, u)` appears in the immediate context of a template instantiation.
+
+## Example
+
+
+### Example
+
+```cpp
+#include <array>
+#include <concepts>
+#include <iostream>
+#include <ranges>
+#include <string_view>
+#include <vector>
+
+void print(std::string_view name, 
+           std::ranges::common_range auto const& p, 
+           std::ranges::common_range auto const& q)
+{
+    std::cout << name << "1{ ";
+    for (auto const& i : p)
+        std::cout << i << ' ';
+    std::cout << "}, " << name << "2{ ";
+    for (auto const& i : q)
+        std::cout << i << ' ';
+    std::cout << "}\n";
+}
+
+void print(std::string_view name, int p, int q)
+{
+    std::cout << name << "1 = " << p << ", " << name << "2 = " << q << '\n';
+}
+
+struct IntLike
+{
+    int v;
+};
+
+void swap(IntLike& lhs, int& rhs)
+{
+    std::swap(lhs.v, rhs);
+}
+
+void swap(int& lhs, IntLike& rhs)
+{
+    std::swap(lhs, rhs.v);
+}
+
+std::ostream& operator<<(std::ostream& out, IntLike i)
+{
+    return out << i.v;
+}
+
+int main()
+{
+    std::vector a1{10, 11, 12}, a2{13, 14};
+    std::ranges::swap(a1, a2);
+    print("a", a1, a2);
+
+    std::array b1{15, 16, 17}, b2{18, 19, 20};
+    std::ranges::swap(b1, b2);
+    print("b", b1, b2);
+
+    // std::array c1{1, 2, 3}; std::array c2{4, 5};
+    // std::ranges::swap(c1, c2); // error: no swap found by ADL
+
+    int d1[]{21, 22, 23}, d2[]{24, 25, 26};
+    std::ranges::swap(d1, d2);
+    print("d", d1, d2);
+
+    // int e1[]{1, 2, 3}, e2[]{4, 5};
+    // std::ranges::swap(e1, e2); // error: extents mismatch
+
+    // char f1[]{1, 2, 3};
+    // int  f2[]{4, 5, 6};
+    // std::ranges::swap(f1, f2); // error: no swap(*f1, *f2) found by ADL
+
+    IntLike g1[]{1, 2, 3};
+    int     g2[]{4, 5, 6};
+    std::ranges::swap(g1, g2); // heterogeneous swap supported
+    print("g", g1, g2);
+
+    int h1{27}, h2{28};
+    std::ranges::swap(h1, h2);
+    print("h", h1, h2);
+}
+```
+
+
+**Output:**
+```
+a1{ 13 14 }, a2{ 10 11 12 }
+b1{ 18 19 20 }, b2{ 15 16 17 }
+d1{ 24 25 26 }, d2{ 21 22 23 }
+g1{ 4 5 6 }, g2{ 1 2 3 }
+h1 = 28, h2 = 27
+```
+
+
+## See also
+
+
+| cpp/concepts/dsc swappable | (see dedicated page) |
+| cpp/algorithm/dsc swap | (see dedicated page) |
+

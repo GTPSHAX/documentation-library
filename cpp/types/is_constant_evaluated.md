@@ -1,0 +1,117 @@
+---
+title: std::is_constant_evaluated
+type: Utilities
+source: https://en.cppreference.com/w/cpp/types/is_constant_evaluated
+---
+
+ddcl|header=type_traits|since=c++20|
+constexpr bool is_constant_evaluated() noexcept;
+Detects whether the function call occurs within a constant-evaluated context. Returns `true` if the evaluation of the call occurs within the evaluation of an expression or conversion that is ; otherwise returns `false`.
+To determine whether initializers of following variables are manifestly constant-evaluated, compilers may first perform a trial constant evaluation:
+* variables with reference type or const-qualified integral or enumeration type;
+* static and thread local variables.
+It is not recommended to depend on the result in this case.
+
+```cpp
+int y = 0;
+const int a = std::is_constant_evaluated() ? y : 1;
+// Trial constant evaluation fails. The constant evaluation is discarded.
+// Variable a is dynamically initialized with 1
+
+const int b = std::is_constant_evaluated() ? 2 : y;
+// Constant evaluation with std::is_constant_evaluated() == true succeeds.
+// Variable b is statically initialized with 2
+```
+
+
+## Parameters
+
+(none)
+
+## Return value
+
+`true` if the evaluation of the call occurs within the evaluation of an expression or conversion that is manifestly constant-evaluated; otherwise `false`.
+
+## Possible implementation
+
+eq fun|1=
+// This implementation requires C++23 if consteval.
+constexpr bool is_constant_evaluated() noexcept
+{
+if consteval
+{
+return true;
+}
+else
+{
+return false;
+}
+}
+
+## Notes
+
+When directly used as the condition of `cpp/language/static_assert` declaration or , `std::is_constant_evaluated()` always returns `true`.
+Because `cpp/language/if#Consteval_if|if consteval` is absent in C++20, `std::is_constant_evaluated` is typically implemented using a compiler extension.
+
+## Example
+
+
+### Example
+
+```cpp
+#include <cmath>
+#include <iostream>
+#include <type_traits>
+
+constexpr double power(double b, int x)
+{
+    if (std::is_constant_evaluated() && !(b == 0.0 && x < 0))
+    {
+        // A constant-evaluation context: Use a constexpr-friendly algorithm.
+        if (x == 0)
+            return 1.0;
+        double r {1.0};
+        double p {x > 0 ? b : 1.0 / b};
+        for (auto u = unsigned(x > 0 ? x : -x); u != 0; u /= 2)
+        {
+            if (u & 1)
+                r *= p;
+            p *= p;
+        }
+        return r;
+    }
+    else
+    {
+        // Let the code generator figure it out.
+        return std::pow(b, double(x));
+    }
+}
+
+int main()
+{
+    // A constant-expression context
+    constexpr double kilo = power(10.0, 3);
+    int n = 3;
+    // Not a constant expression, because n cannot be converted to an rvalue
+    // in a constant-expression context
+    // Equivalent to std::pow(10.0, double(n))
+    double mucho = power(10.0, n);
+
+    std::cout << kilo << " " << mucho << "\n"; // (3)
+}
+```
+
+
+**Output:**
+```
+1000 1000
+```
+
+
+## See also
+
+
+| cpp/language/dsc constexpr | (see dedicated page) |
+| cpp/language/dsc consteval | (see dedicated page) |
+| cpp/language/dsc constinit | (see dedicated page) |
+

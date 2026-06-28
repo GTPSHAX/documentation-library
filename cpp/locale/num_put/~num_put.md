@@ -1,0 +1,14 @@
+---
+title: std::num_put::~num_put
+type: Localizations
+source: https://en.cppreference.com/w/cpp/locale/num_put/~num_put
+---
+
+de:cpp/locale/num put/~num put
+es:cpp/locale/num put/~num put
+fr:cpp/locale/num put/~num put
+it:cpp/locale/num put/~num put
+ja:cpp/locale/num put/~num put
+pt:cpp/locale/num put/~num put
+ru:cpp/locale/num put/~num put
+zh:cpp/locale/num put/~num put

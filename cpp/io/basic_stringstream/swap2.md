@@ -1,0 +1,7 @@
+---
+title: std::swap(std::basic_stringstream)
+type: Input/output
+source: https://en.cppreference.com/w/cpp/io/basic_stringstream/swap2
+---
+
+
