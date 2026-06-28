@@ -1,0 +1,20 @@
+# mode:
+# git     = keep .git directory
+# archive = remove .git directory after checkout
+
+# name|repo|ref|sparse_path|mode
+
+daisyui|https://github.com/saadeghi/daisyui.git|v5.5.23|packages/docs|archive
+express|https://github.com/expressjs/expressjs.com.git|main|src/content/docs/en|archive
+reactjs|https://github.com/reactjs/react.dev.git|main|src/content|archive
+nextjs|https://github.com/vercel/next.js.git|v16.2.9|docs|archive
+astro|https://github.com/withastro/docs.git|main|src/content/docs|archive
+tailwindcss|https://github.com/tailwindlabs/tailwindcss.com.git|main|src/docs|archive
+nodejs|https://github.com/nodejs/node.git|v26.3.1|doc|archive
+cmake|https://github.com/Kitware/CMake.git|v4.3.4|Help|archive
+cloudflare|https://github.com/cloudflare/cloudflare-docs.git|production|src/content/docs|archive
+supabase|https://github.com/supabase/supabase.git|v1.26.05|apps/docs|archive
+
+# C++ docs are synced via scripts/sync_cpp.py from cppreference.com (CC-BY-SA)
+# Source: https://en.cppreference.com (same content as https://devdocs.io/cpp/)
+# cpp|https://en.cppreference.com|latest|n/a|script
