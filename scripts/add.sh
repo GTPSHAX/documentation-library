@@ -23,18 +23,29 @@ while IFS="|" read -r NAME REPO REF SPARSE_PATH MODE; do
   if [ ! -d "$NAME" ]; then
     echo "Cloning repository..."
 
-    git clone \
-      --depth=1 \
-      --filter=blob:none \
-      --sparse \
-      --branch="$REF" \
-      "$REPO" \
-      "$NAME"
+    if [ "$SPARSE_PATH" = "*" ]; then
+      git clone \
+        --depth=1 \
+        --filter=blob:none \
+        --branch="$REF" \
+        "$REPO" \
+        "$NAME"
+    else
+      git clone \
+        --depth=1 \
+        --filter=blob:none \
+        --sparse \
+        --branch="$REF" \
+        "$REPO" \
+        "$NAME"
+    fi
 
     cd "$NAME"
 
-    echo "Configuring sparse checkout..."
-    git sparse-checkout set "$SPARSE_PATH"
+    if [ "$SPARSE_PATH" != "*" ]; then
+      echo "Configuring sparse checkout..."
+      git sparse-checkout set "$SPARSE_PATH"
+    fi
 
     if [ "$MODE" = "archive" ]; then
       echo "Removing Git metadata..."
@@ -55,7 +66,9 @@ while IFS="|" read -r NAME REPO REF SPARSE_PATH MODE; do
 
         git fetch --depth=1 origin "$REF"
         git checkout "$REF"
-        git sparse-checkout set "$SPARSE_PATH"
+        if [ "$SPARSE_PATH" != "*" ]; then
+          git sparse-checkout set "$SPARSE_PATH"
+        fi
 
         git pull origin "$REF" || true
 

@@ -28,18 +28,29 @@ for /f "usebackq tokens=1-5 delims=|" %%a in ("%CONFIG_FILE%") do (
             if not exist "!NAME!" (
                 echo Cloning repository...
 
-                git clone ^
-                    --depth=1 ^
-                    --filter=blob:none ^
-                    --sparse ^
-                    --branch=!REF! ^
-                    !REPO! ^
-                    !NAME!
+                if "!SPARSE_PATH!"=="*" (
+                    git clone ^
+                        --depth=1 ^
+                        --filter=blob:none ^
+                        --branch=!REF! ^
+                        !REPO! ^
+                        !NAME!
+                ) else (
+                    git clone ^
+                        --depth=1 ^
+                        --filter=blob:none ^
+                        --sparse ^
+                        --branch=!REF! ^
+                        !REPO! ^
+                        !NAME!
+                )
 
                 pushd !NAME!
 
-                echo Configuring sparse checkout...
-                git sparse-checkout set !SPARSE_PATH!
+                if not "!SPARSE_PATH!"=="*" (
+                    echo Configuring sparse checkout...
+                    git sparse-checkout set !SPARSE_PATH!
+                )
 
                 if /I "!MODE!"=="archive" (
                     echo Removing Git metadata...
@@ -62,7 +73,9 @@ for /f "usebackq tokens=1-5 delims=|" %%a in ("%CONFIG_FILE%") do (
 
                         git fetch --depth=1 origin !REF!
                         git checkout !REF!
-                        git sparse-checkout set !SPARSE_PATH!
+                        if not "!SPARSE_PATH!"=="*" (
+                            git sparse-checkout set !SPARSE_PATH!
+                        )
 
                         git pull origin !REF!
 

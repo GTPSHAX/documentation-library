@@ -51,6 +51,7 @@ C++ documentation is synced via `scripts/sync_cpp.py` from cppreference.com (CC-
 | Cloudflare   | production | 2026-06-28 | `cloudflare/`  | https://github.com/cloudflare/cloudflare-docs.git    |
 | Supabase     | v1.26.05   | 2026-06-28 | `supabase/`    | https://github.com/supabase/supabase.git             |
 | Drizzle ORM  | main       | 2026-06-28 | `drizzle-orm/` | https://github.com/drizzle-team/drizzle-orm-docs.git |
+| ENet         | v1.3.18    | 2026-06-28 | `enet/`        | https://github.com/lsalzman/enet.git                 |
 
 ---
 
