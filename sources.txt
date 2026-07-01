@@ -16,6 +16,9 @@ cloudflare|https://github.com/cloudflare/cloudflare-docs.git|production|src/cont
 supabase|https://github.com/supabase/supabase.git|v1.26.05|apps/docs|archive
 drizzle-orm|https://github.com/drizzle-team/drizzle-orm-docs.git|main|src/content|archive
 enet|https://github.com/lsalzman/enet.git|v1.3.18|*|archive
+growdocs|https://github.com/eikarna/GrowDocs.git|main|*|archive
+growtopia-docs|https://github.com/H-pun/growtopia-docs.git|master|*|archive
+GTPrivateServer-docs|https://github.com/ZTzTopia/GTPrivateServer-docs.git|main|*|archive
 
 # C++ docs are synced via scripts/sync_cpp.py from cppreference.com (CC-BY-SA)
 # Source: https://en.cppreference.com (same content as https://devdocs.io/cpp/)

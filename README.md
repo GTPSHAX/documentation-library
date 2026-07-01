@@ -37,21 +37,24 @@ C++ documentation is synced via `scripts/sync_cpp.py` from cppreference.com (CC-
 
 ## Documentation Sources
 
-| Library      | Version    | Updated    | Local Path     | Source                                               |
-| ------------ | ---------- | ---------- | -------------- | ---------------------------------------------------- |
-| Express.js   | 4.x / 5.x  | 2026-06-21 | `express/`     | https://github.com/expressjs/expressjs.com           |
-| DaisyUI      | 5.5.23     | 2026-06-21 | `daisyui/`     | https://github.com/saadeghi/daisyui                  |
-| React.js     | 19.2       | 2026-06-22 | `reactjs/`     | https://github.com/reactjs/react.dev.git             |
-| Next.js      | 16.2.9     | 2026-06-22 | `nextjs/`      | https://github.com/vercel/next.js.git                |
-| Astro        | 6.4.8      | 2026-06-22 | `astro/`       | https://github.com/withastro/docs.git                |
-| TailwindCSS  | 4.3        | 2026-06-22 | `tailwindcss/` | https://github.com/tailwindlabs/tailwindcss.com.git  |
-| Node.js      | 26.3.1     | 2026-06-22 | `nodejs/`      | https://github.com/nodejs/node.git                   |
-| C++ (cppref) | latest     | 2026-06-22 | `cpp/`         | https://en.cppreference.com (CC-BY-SA)               |
-| CMake        | 4.3.4      | 2026-06-22 | `cmake/`       | https://github.com/Kitware/CMake.git                 |
-| Cloudflare   | production | 2026-06-28 | `cloudflare/`  | https://github.com/cloudflare/cloudflare-docs.git    |
-| Supabase     | v1.26.05   | 2026-06-28 | `supabase/`    | https://github.com/supabase/supabase.git             |
-| Drizzle ORM  | main       | 2026-06-28 | `drizzle-orm/` | https://github.com/drizzle-team/drizzle-orm-docs.git |
-| ENet         | v1.3.18    | 2026-06-28 | `enet/`        | https://github.com/lsalzman/enet.git                 |
+| Library        | Version    | Updated    | Local Path        | Source                                               |
+| -------------- | ---------- | ---------- | ----------------- | ---------------------------------------------------- |
+| Express.js     | 4.x / 5.x  | 2026-06-21 | `express/`        | https://github.com/expressjs/expressjs.com           |
+| DaisyUI        | 5.5.23     | 2026-06-21 | `daisyui/`        | https://github.com/saadeghi/daisyui                  |
+| React.js       | 19.2       | 2026-06-22 | `reactjs/`        | https://github.com/reactjs/react.dev.git             |
+| Next.js        | 16.2.9     | 2026-06-22 | `nextjs/`         | https://github.com/vercel/next.js.git                |
+| Astro          | 6.4.8      | 2026-06-22 | `astro/`          | https://github.com/withastro/docs.git                |
+| TailwindCSS    | 4.3        | 2026-06-22 | `tailwindcss/`    | https://github.com/tailwindlabs/tailwindcss.com.git  |
+| Node.js        | 26.3.1     | 2026-06-22 | `nodejs/`         | https://github.com/nodejs/node.git                   |
+| C++ (cppref)   | latest     | 2026-06-22 | `cpp/`            | https://en.cppreference.com (CC-BY-SA)               |
+| CMake          | 4.3.4      | 2026-06-22 | `cmake/`          | https://github.com/Kitware/CMake.git                 |
+| Cloudflare     | production | 2026-06-28 | `cloudflare/`     | https://github.com/cloudflare/cloudflare-docs.git    |
+| Supabase       | v1.26.05   | 2026-06-28 | `supabase/`       | https://github.com/supabase/supabase.git             |
+| Drizzle ORM    | main       | 2026-06-28 | `drizzle-orm/`    | https://github.com/drizzle-team/drizzle-orm-docs.git |
+| ENet           | v1.3.18    | 2026-06-28 | `enet/`           | https://github.com/lsalzman/enet.git                 |
+| GrowDocs       | main       | 2026-07-01 | `GrowDocs/`       | https://github.com/eikarna/GrowDocs.git              |
+| Growtopia Docs | main       | 2026-07-01 | `growtopia-docs/` | https://github.com/H-pun/growtopia-docs.git          |
+| GTPrivateServer Docs | main | 2026-07-01 | `GTPrivateServer-docs/` | https://github.com/ZTzTopia/GTPrivateServer-docs.git          |
 
 ---
 

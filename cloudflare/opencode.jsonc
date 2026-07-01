@@ -1,5 +1,9 @@
 {
 	"$schema": "https://opencode.ai/config.json",
+	"instructions": [
+		"/media/gtpshax/DATA I/workspace/documentation-library/cloudflare/AGENTS.md",
+		"/media/gtpshax/DATA I/workspace/documentation-library/cloudflare/src/content.config.ts",
+	],
 	"experimental": {
 		"continue_loop_on_deny": true,
 	},

@@ -12,7 +12,7 @@
   "instructions": [
     "./README.md",
     "./sources.txt",
-    "./opencode/AGENTS.md",
+    "./cloudflare/AGENTS.md",
     "./daisyui/README.md",
     "./daisyui/CHANGELOG.md",
     "./express/README.md",
@@ -23,10 +23,13 @@
     "./nodejs/README.md",
     "./cpp/26.md",
     "./cmake/Help/index.rst",
-    "./cloudflare/src/content/docs/content.config.ts",
+    "./cloudflare/src/content.config.ts",
     "./supabase/apps/docs/README.md",
     "./drizzle-orm/src/content/docs/overview.mdx",
-    "./enet/include/enet/enet.h"
+    "./enet/include/enet/enet.h",
+    "./GrowDocs/README.md",
+    "./growtopia-docs/README.md",
+    "./GTPrivateServer-docs/README.md"
   ],
 
   "references": {},
